@@ -67,7 +67,7 @@ document.querySelector('.js-reset-button')
 
 document.querySelector('.js-home-button')
   .addEventListener('click', () => {
-    window.location.href = './html/home-page.html'
+    window.location.href = '../index.html'
   })
 
 // Conditions for winning
