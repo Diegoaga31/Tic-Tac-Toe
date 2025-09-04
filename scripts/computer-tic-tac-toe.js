@@ -1,114 +1,95 @@
-let currentPlayer = 'x';
-let winner = '';
-let loser = '';
 let gameOver = false;
-const cell1 = document.querySelector('.grid-cell-1');
-const cell5 = document.querySelector('.grid-cell-5');
-const cell9 = document.querySelector('.grid-cell-9');
-const cell3 = document.querySelector('.grid-cell-3');
-const cell7 = document.querySelector('.grid-cell-7');
+let board = Array(9).fill('');
+
 const cells = document.querySelectorAll('.grid-cell');
+const displayWinner = document.querySelector('.display-winner');
 
-document.querySelectorAll('.grid-cell')
-  .forEach(cell => {
-    cell.addEventListener('click', () => {
-      let computerNumberMove = Math.floor(Math.random() * 9) + 1;
-      let computerMove = cells[computerNumberMove];
+document.querySelectorAll('.grid-cell').forEach((cell, index) => {
+  cell.addEventListener('click', () => {
+    if (gameOver || cell.textContent !== '') {
+      return // basically do nothing if game is over or if there is some text in the cell
+    }
 
-      while (!isCellEmpty(computerMove)){
-        computerNumberMove = Math.floor(Math.random() * 9) + 1;
-        computerMove = cells[computerNumberMove];
-      };
+    cell.textContent = 'x';
+    board[index] = 'x';
 
-      if (isCellEmpty(cell) && !gameOver) {
-        cell.innerHTML = 'x';
+    if (checkWin('x')) {
+      displayWinner.innerHTML = 'Winner: x<br>Loser: o';
+      gameOver = true;
+      return;
+    }
 
-        if (isCellEmpty(cell)) {
-          computerMove.innerHTML = 'o';
-        } else {
-          // termina la logica para el movimiento de la computadora
-        };
+    if (checkTie()) {
+      displayWinner.innerHTML = 'It is a tie';
+      gameOver = true;
+      return;
+    }
 
-        if (checkRowWin('x') || checkColWin('x')) {
-          winner = 'x';
-          loser = 'o';
-        } else if (checkRowWin('o') || checkColWin('o')) {
-          winner = 'o';
-          loser = 'x';
-        } else if (checkDiagonalWin('x')) {
-          winner = 'x';
-          loser = 'o';
-        } else if (checkDiagonalWin('o')) {
-          winner = 'o';
-          loser = 'x';
-        };
+    setTimeout(() => {
+      computerMove();
+    }, 500);
 
-        // Display winner and loser
-        if (checkRowWin('x') || checkRowWin('o') || checkColWin('x') || checkColWin('o') || checkDiagonalWin('x') || checkDiagonalWin('o')) {
-          const displayWinnerHTML = `<div class="display-winner">Winner: ${winner} <br> Loser: ${loser}</div>`;
-          document.querySelector('.display-winner').innerHTML = displayWinnerHTML;
-          gameOver = true;
-        };
-        
-        // Conditions for a tie
-        if (!checkRowWin('x') && !checkRowWin('o')) {
-          const allCellsFilled = Array.from(document.querySelectorAll('.grid-cell'))
-            .every(cell => cell.textContent.trim() !== '')
-          
-          if (allCellsFilled){
-            document.querySelector('.display-winner').innerHTML = 'It is a Tie!';
-          };
-        };
-      };
-    });
+  });
+});
+
+function checkWin(player) {
+  const winConditions = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+  ];
+  return winConditions.some(condition => {
+    return condition.every(index => board[index] === player);
+  });
+}
+
+function checkTie() {
+  return board.every(cell => cell !== '');
+}
+
+function computerMove() {
+  if (gameOver) {
+    return;
+  }
+
+  let emptyCells = [];
+
+  board.forEach((cell, index) => {
+    if (cell === '') {
+      emptyCells.push(index);
+    }
   });
 
+  if (emptyCells.length === 0) {
+    displayWinner.innerHTML = 'It is a tie';
+    gameOver = true;
+    return;
+  };
 
+  const randomIndex = Math.floor(Math.random() * emptyCells.length);
+  const moveIndex = emptyCells[randomIndex];
 
-function isCellEmpty(cell) {
-  return cell.textContent.trim() === '';
+  cells[moveIndex].textContent = 'o';
+  board[moveIndex] = 'o';
+
+  if (checkWin('o')) {
+    displayWinner.innerHTML = 'Winner: o<br>Loser: x';
+    gameOver = true;
+  } else if (checkTie()) {
+    displayWinner.innerHTML = 'It is a tie';
+    gameOver = true;
+  }
 }
 
 document.querySelector('.js-reset-button')
   .addEventListener('click', () => {
-    document.querySelectorAll('.grid-cell')
-      .forEach(cell => cell.innerHTML = '');
-    document.querySelector('.display-winner')
-      .innerHTML = '';
+    cells.forEach(cell => cell.textContent = '');
+    displayWinner.innerHTML = '';
+    board.fill('');
     gameOver = false;
   });
 
 document.querySelector('.js-home-button')
   .addEventListener('click', () => {
-    window.location.href = '../index.html'
-  })
-
-
-// Conditions for winning
-
-function checkRowWin(player) {
-  for (let row = 0; row < 3; row++) {
-    const rowCells = Array.from(document.querySelectorAll(`[data-row="${row}"]`))
-    if (rowCells.every(cell => cell.textContent === player)) {
-      return true;
-    } 
-  } return false;
-}
-
-function checkColWin(player) {
-  for (let col = 0; col < 3; col++) {
-    const colCells = Array.from(document.querySelectorAll(`[data-col="${col}"]`))
-    if (colCells.every(cell => cell.textContent === player)) {
-      return true;
-    } 
-  } return false;
-}
-
-function checkDiagonalWin(player) {
-  if (cell1.textContent === player && cell5.textContent === player && cell9.textContent === player) {
-    return true;
-  } else if (cell3.textContent === player && cell5.textContent === player && cell7.textContent === player) {
-    return true;
-  };
-}
-
+    window.location.href = '../index.html';
+  });
